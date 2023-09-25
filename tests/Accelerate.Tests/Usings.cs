@@ -1,0 +1,11 @@
+global using System;
+global using System.IO;
+global using System.Linq;
+global using System.Threading;
+global using System.Threading.Tasks;
+global using Accelerate.Commands;
+global using Accelerate.Exceptions;
+global using Accelerate.Repositories;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Hosting;
+global using Xunit;
