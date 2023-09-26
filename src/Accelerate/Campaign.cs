@@ -64,15 +64,13 @@ public sealed class Campaign
             .ConfigureAwait(false);
     }
 
-    public async Task CommitAsync(string message, CancellationToken ct = default)
+    public Task CommitAsync(string message, CancellationToken ct = default)
     {
-        await Task.WhenAll(_repositories.Select(repository => _azureDevOpsService.CommitAsync(this, repository, message, ct)))
-            .ConfigureAwait(false);
+        return Task.WhenAll(_repositories.Select(repository => _azureDevOpsService.CommitAsync(this, repository, message, ct)));
     }
 
-    public async Task PushAsync(CancellationToken ct = default)
+    public Task PushAsync(CancellationToken ct = default)
     {
-        await Task.WhenAll(_repositories.Select(repository => _azureDevOpsService.PushAsync(this, repository, ct)))
-            .ConfigureAwait(false);
+        return Task.WhenAll(_repositories.Select(repository => _azureDevOpsService.PushAsync(this, repository, ct)));
     }
 }
