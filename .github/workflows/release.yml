@@ -1,0 +1,23 @@
+on:
+  push:
+    tags:
+      - '*'
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_USE_POLLING_FILE_WATCHER: true
+  NUGET_XMLDOC_MODE: skip
+  NUGET_FEED_API_KEY: ${{ secrets.NUGET_FEED_API_KEY }}
+jobs:
+  release:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+      - name: Pack
+        run: dotnet pack --configuration Release --output . /p:Version=$GITHUB_REF_NAME
+      - name: Pack
+        run: dotnet nuget push *.nupkg --source $NUGET_FEED_SOURCE --api-key $NUGET_FEED_API_KEY
