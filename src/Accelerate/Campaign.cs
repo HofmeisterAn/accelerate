@@ -6,30 +6,26 @@ public sealed class Campaign
 
     public const string ReposFileName = "repos.json";
 
-    private readonly IGitCommand<AzureDevOps> _azureDevOpsService;
+    private readonly IGitCommand<AzureDevOps> _gitCommand;
 
-    private readonly IGitCommand<GitHub> _gitHubService;
+    private readonly IShellCommand<AzureDevOps> _shellCommand;
 
     private readonly IReadOnlyList<AzureDevOps> _repositories;
 
-    public Campaign(IGitCommand<AzureDevOps> azureDevOpsService, IGitCommand<GitHub> gitHubService)
+    public Campaign(IGitCommand<AzureDevOps> gitCommand, IShellCommand<AzureDevOps> shellCommand)
     {
-        RepositoryCollection repositoryCollection;
-
-        _azureDevOpsService = azureDevOpsService;
-        _gitHubService = gitHubService;
+        // TODO: Support other Git hosting platforms too.
+        _gitCommand = gitCommand;
+        _shellCommand = shellCommand;
 
         if (File.Exists(ReadmeFileName) && File.Exists(ReposFileName))
         {
-            repositoryCollection = new RepositoryCollection(File.ReadAllText(ReposFileName));
+            _repositories = new RepositoryCollection(File.ReadAllText(ReposFileName)).OfType<AzureDevOps>().ToImmutableList();
         }
         else
         {
-            repositoryCollection = new RepositoryCollection("[]");
+            _repositories = Array.Empty<AzureDevOps>();
         }
-
-        // TODO: Change the implementation to work with the actual base class, `Repository`.
-        _repositories = repositoryCollection.OfType<AzureDevOps>().ToImmutableList();
     }
 
     public string WorkingDirectoryName => "work";
@@ -57,20 +53,25 @@ public sealed class Campaign
 
     public async Task CloneAsync(CancellationToken ct = default)
     {
-        await Task.WhenAll(_repositories.Select(repository => _azureDevOpsService.CloneAsync(this, repository, ct)))
+        await Task.WhenAll(_repositories.Select(repository => _gitCommand.CloneAsync(this, repository, ct)))
             .ConfigureAwait(false);
 
-        await Task.WhenAll(_repositories.Select(repository => _azureDevOpsService.CheckoutAsync(this, repository, ct)))
+        await Task.WhenAll(_repositories.Select(repository => _gitCommand.CheckoutAsync(this, repository, ct)))
             .ConfigureAwait(false);
     }
 
     public Task CommitAsync(string message, CancellationToken ct = default)
     {
-        return Task.WhenAll(_repositories.Select(repository => _azureDevOpsService.CommitAsync(this, repository, message, ct)));
+        return Task.WhenAll(_repositories.Select(repository => _gitCommand.CommitAsync(this, repository, message, ct)));
     }
 
     public Task PushAsync(CancellationToken ct = default)
     {
-        return Task.WhenAll(_repositories.Select(repository => _azureDevOpsService.PushAsync(this, repository, ct)));
+        return Task.WhenAll(_repositories.Select(repository => _gitCommand.PushAsync(this, repository, ct)));
+    }
+
+    public Task ForeachAsync(IEnumerable<string> command, CancellationToken ct = default)
+    {
+        return Task.WhenAll(_repositories.Select(repository => _shellCommand.ForeachAsync(this, repository, command, ct)));
     }
 }

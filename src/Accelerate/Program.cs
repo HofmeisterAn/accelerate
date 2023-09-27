@@ -2,7 +2,7 @@ var host = new AccelerateHostBuilder(args).Build();
 await host.StartAsync();
 await host.StopAsync();
 
-public sealed class AccelerateHostBuilder : HostBuilder
+public class AccelerateHostBuilder : HostBuilder
 {
     static AccelerateHostBuilder()
     {
@@ -21,8 +21,12 @@ public sealed class AccelerateHostBuilder : HostBuilder
             serviceCollection.AddHostedService<Execute>();
             serviceCollection.AddSingleton(argCollection);
             serviceCollection.AddSingleton<Campaign>();
+
+            // TODO: Change the implementation to work with the actual base class `Repository`.
             serviceCollection.AddSingleton<IGitCommand<AzureDevOps>, AzureDevOps.Service>();
-            serviceCollection.AddSingleton<IGitCommand<GitHub>, GitHub.Service>();
+
+            // TODO: Share the foreach implementation across repositories.
+            serviceCollection.AddSingleton<IShellCommand<AzureDevOps>, AzureDevOps.Service>();
         })
         .ConfigureDefaults(args);
     }

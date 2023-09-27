@@ -6,7 +6,7 @@ public sealed class GitHub : Repository
     {
     }
 
-    public sealed class Service : IGitCommand<GitHub>
+    public sealed class Service : IGitCommand<GitHub>, IShellCommand<AzureDevOps>
     {
         public Task CloneAsync(Campaign campaign, GitHub repository, CancellationToken ct = default)
         {
@@ -24,6 +24,11 @@ public sealed class GitHub : Repository
         }
 
         public Task PushAsync(Campaign campaign, GitHub repository, CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task ForeachAsync(Campaign campaign, AzureDevOps repository, IEnumerable<string> command, CancellationToken ct = default)
         {
             throw new NotImplementedException();
         }

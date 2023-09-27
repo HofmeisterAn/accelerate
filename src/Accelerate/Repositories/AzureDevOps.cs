@@ -6,7 +6,7 @@ public sealed class AzureDevOps : Repository
     {
     }
 
-    public sealed class Service : IGitCommand<AzureDevOps>
+    public sealed class Service : IGitCommand<AzureDevOps>, IShellCommand<AzureDevOps>
     {
         private const string GitCli = "git";
 
@@ -48,6 +48,14 @@ public sealed class AzureDevOps : Repository
             var workDir = Path.Combine(campaign.WorkingDirectoryName, repository.Hash);
             var args = new[] { "push" };
             return Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).ExecuteAsync(ct);
+        }
+
+        public Task ForeachAsync(Campaign campaign, AzureDevOps repository, IEnumerable<string> command, CancellationToken ct = default)
+        {
+            var accelerateShell = Environment.GetEnvironmentVariable("ACCELERATE_SHELL");
+            var shell = string.IsNullOrWhiteSpace(accelerateShell) ? RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "PowerShell" : "sh" : accelerateShell;
+            var workDir = Path.Combine(campaign.WorkingDirectoryName, repository.Hash);
+            return Cli.Wrap(shell).WithWorkingDirectory(workDir).WithArguments(command).ExecuteAsync(ct);
         }
     }
 }
