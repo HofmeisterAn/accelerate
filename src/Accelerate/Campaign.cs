@@ -28,7 +28,7 @@ public sealed class Campaign
         }
     }
 
-    public string WorkingDirectoryName => "work";
+    public string WorkingDirectoryPath => "work";
 
     public string Name => Directory.GetCurrentDirectory().Split(Path.DirectorySeparatorChar).Last();
 

@@ -4,14 +4,13 @@ public abstract class Repository
 {
     public Repository(Uri url)
     {
-        using var sha1 = SHA1.Create();
-        Hash = Convert.ToHexString(sha1.ComputeHash(Encoding.Default.GetBytes(url.ToString()))).ToLowerInvariant();
+        ArgumentNullException.ThrowIfNull(url);
         Url = url;
     }
 
     [JsonIgnore]
-    public string Hash { get; }
+    public virtual string WorkingDirectoryPath => Url.AbsolutePath.TrimStart('/');
 
     [JsonPropertyName("url")]
-    public Uri Url { get; }
+    public virtual Uri Url { get; }
 }
