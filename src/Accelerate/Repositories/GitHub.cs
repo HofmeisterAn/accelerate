@@ -28,6 +28,11 @@ public sealed class GitHub : Repository
             throw new NotImplementedException();
         }
 
+        public Task CreatePullRequestsAsync(Campaign campaign, GitHub repository, string title, string description, CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task ForeachAsync(Campaign campaign, AzureDevOps repository, IEnumerable<string> command, CancellationToken ct = default)
         {
             throw new NotImplementedException();

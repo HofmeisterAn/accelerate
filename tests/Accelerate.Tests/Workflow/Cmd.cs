@@ -85,4 +85,12 @@ public class Cmd : AccelerateHostBuilder, IAsyncLifetime, IDisposable
         {
         }
     }
+
+    public sealed class CreatePullRequests : Cmd
+    {
+        public CreatePullRequests(CampaignId campaignId, IGitCommand<AzureDevOps> gitCommand, IShellCommand<AzureDevOps> shellCommand)
+            : base(gitCommand, shellCommand, "create-prs")
+        {
+        }
+    }
 }

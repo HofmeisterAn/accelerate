@@ -4,8 +4,6 @@ public sealed class WorkflowTest : IGitCommand<AzureDevOps>, IShellCommand<Azure
 {
     private readonly IList<string> _actualCmds = new List<string>();
 
-    private readonly IList<string> _cmds = new List<string>();
-
     private readonly CampaignId _campaignId = new CampaignId();
 
     [Fact]
@@ -18,16 +16,17 @@ public sealed class WorkflowTest : IGitCommand<AzureDevOps>, IShellCommand<Azure
         cmds.Add(new Cmd.Foreach(_campaignId, this, this));
         cmds.Add(new Cmd.Commit(_campaignId, this, this));
         cmds.Add(new Cmd.Push(_campaignId, this, this));
+        cmds.Add(new Cmd.CreatePullRequests(_campaignId, this, this));
 
         // When
-        foreach (var cmd in cmds)
+        for (var step = 0; step < cmds.Count; step++)
         {
-            using var exec = cmd;
+            using var cmd = cmds[step];
 
-            await exec.InitializeAsync()
+            await cmd.InitializeAsync()
                 .ConfigureAwait(false);
 
-            await exec.DisposeAsync()
+            await cmd.DisposeAsync()
                 .ConfigureAwait(false);
         }
 
@@ -62,6 +61,13 @@ public sealed class WorkflowTest : IGitCommand<AzureDevOps>, IShellCommand<Azure
     Task IGitCommand<AzureDevOps>.PushAsync(Campaign campaign, AzureDevOps repository, CancellationToken ct)
     {
         _actualCmds.Add(nameof(IGitCommand<Repository>.PushAsync));
+        Assert.Equal(_campaignId.Id, campaign.Name);
+        return Task.CompletedTask;
+    }
+
+    Task IGitCommand<AzureDevOps>.CreatePullRequestsAsync(Campaign campaign, AzureDevOps repository, string title, string description, CancellationToken ct)
+    {
+        _actualCmds.Add(nameof(IGitCommand<Repository>.CreatePullRequestsAsync));
         Assert.Equal(_campaignId.Id, campaign.Name);
         return Task.CompletedTask;
     }

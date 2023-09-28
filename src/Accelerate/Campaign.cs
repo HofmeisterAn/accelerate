@@ -70,8 +70,26 @@ public sealed class Campaign
         return Task.WhenAll(_repositories.Select(repository => _gitCommand.PushAsync(this, repository, ct)));
     }
 
+    public Task CreatePullRequestAsync(CancellationToken ct = default)
+    {
+        var pullRequest = new PullRequest();
+        return Task.WhenAll(_repositories.Select(repository => _gitCommand.CreatePullRequestsAsync(this, repository, pullRequest.Title, pullRequest.Title, ct)));
+    }
+
     public Task ForeachAsync(IEnumerable<string> command, CancellationToken ct = default)
     {
         return Task.WhenAll(_repositories.Select(repository => _shellCommand.ForeachAsync(this, repository, command, ct)));
+    }
+
+    private sealed class PullRequest
+    {
+        public PullRequest()
+        {
+            var lines = File.Exists(ReadmeFileName) ? File.ReadAllLines(ReadmeFileName) : Array.Empty<string>();
+        }
+
+        public string Title { get; } = string.Empty;
+
+        public string Description { get; } = string.Empty;
     }
 }

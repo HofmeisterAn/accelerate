@@ -9,4 +9,6 @@ public interface IGitCommand<in TRepository>
     Task CommitAsync(Campaign campaign, TRepository repository, string commit, CancellationToken ct = default);
 
     Task PushAsync(Campaign campaign, TRepository repository, CancellationToken ct = default);
+
+    Task CreatePullRequestsAsync(Campaign campaign, TRepository repository, string title, string description, CancellationToken ct = default);
 }

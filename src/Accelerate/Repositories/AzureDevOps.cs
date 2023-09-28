@@ -6,14 +6,26 @@ public sealed class AzureDevOps : Repository
     {
     }
 
+    private string Organization => Url.Segments[1].TrimEnd('/');
+
+    private string Project => Url.Segments[2].TrimEnd('/');
+
+    private string Name => Url.Segments[4].TrimEnd('/');
+
     public sealed class Service : IGitCommand<AzureDevOps>, IShellCommand<AzureDevOps>
     {
         private const string GitCli = "git";
 
+        private readonly IOptions<ShellSettings> _shellSettings;
+
+        private readonly IOptions<AzureDevOpsSettings> _azureDevOpsSettings;
+
         private readonly ILogger<Service> _logger;
 
-        public Service(ILogger<Service> logger)
+        public Service(IOptions<ShellSettings> shellSettings, IOptions<AzureDevOpsSettings> azureDevOpsSettings, ILogger<Service> logger)
         {
+            _shellSettings = shellSettings;
+            _azureDevOpsSettings = azureDevOpsSettings;
             _logger = logger;
         }
 
@@ -50,10 +62,55 @@ public sealed class AzureDevOps : Repository
             return Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).ExecuteAsync(ct);
         }
 
+        public async Task CreatePullRequestsAsync(Campaign campaign, AzureDevOps repository, string title, string description, CancellationToken ct = default)
+        {
+            _logger.LogInformation("Create pull request");
+
+            var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
+            var args = new[] { "symbolic-ref", "refs/remotes/origin/HEAD" };
+
+            var commandResult = await Cli.Wrap(GitCli)
+                .WithWorkingDirectory(workDir)
+                .WithArguments(args)
+                .WithValidation(CommandResultValidation.ZeroExitCode)
+                .ExecuteBufferedAsync(ct);
+
+            if (commandResult.ExitCode != 0)
+            {
+                _logger.LogError(commandResult.StandardError);
+                return;
+            }
+
+            const string api = "https://dev.azure.com/{0}/{1}/_apis/git/repositories/{2}/pullrequests?api-version=7.0";
+            var requestUri = new Uri(string.Format(api, repository.Organization, repository.Project, repository.Name));
+
+            var sourceRefName = campaign.Name;
+
+            var targetRefName = commandResult.StandardOutput.Trim().Split('/').Last();
+
+            var prRequestBody = new Dictionary<string, string>();
+            prRequestBody.Add("sourceRefName", sourceRefName);
+            prRequestBody.Add("targetRefName", targetRefName);
+            prRequestBody.Add("title", title);
+            prRequestBody.Add("description", description);
+
+            var parameter = Convert.ToBase64String(Encoding.Default.GetBytes(":" + _azureDevOpsSettings.Value.AuthToken));
+
+            var jsonString = JsonSerializer.Serialize(prRequestBody);
+
+            using var httpClient = new HttpClient();
+
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, requestUri);
+            httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Basic", parameter);
+            httpRequest.Content = new StringContent(jsonString, Encoding.Default, "application/json");
+
+            _ = await httpClient.SendAsync(httpRequest, ct);
+        }
+
         public Task ForeachAsync(Campaign campaign, AzureDevOps repository, IEnumerable<string> command, CancellationToken ct = default)
         {
-            var accelerateShell = Environment.GetEnvironmentVariable("ACCELERATE_SHELL");
-            var shell = string.IsNullOrWhiteSpace(accelerateShell) ? RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "PowerShell" : "sh" : accelerateShell;
+            _logger.LogInformation("Execute command in campaign {Campaign}", campaign.Name);
+            var shell = string.IsNullOrWhiteSpace(_shellSettings.Value.Shell) ? RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "PowerShell" : "sh" : _shellSettings.Value.Shell;
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
             return Cli.Wrap(shell).WithWorkingDirectory(workDir).WithArguments(command).ExecuteAsync(ct);
         }
