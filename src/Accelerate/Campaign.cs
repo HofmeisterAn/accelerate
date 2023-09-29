@@ -72,24 +72,21 @@ public sealed class Campaign
 
     public Task CreatePullRequestAsync(CancellationToken ct = default)
     {
-        var pullRequest = new PullRequest();
-        return Task.WhenAll(_repositories.Select(repository => _gitCommand.CreatePullRequestsAsync(this, repository, pullRequest.Title, pullRequest.Title, ct)));
+        var readme = File.ReadAllText(ReadmeFileName);
+
+        var markdown = Markdown.Parse(readme);
+
+        var heading = markdown.OfType<HeadingBlock>().First();
+
+        var title = readme.Substring(heading.Span.Start + heading.Level + 1, heading.Span.Length - heading.Level - 1);
+
+        var description = readme.Substring(heading.Span.End + 1, markdown.Span.Length - heading.Span.Length);
+
+        return Task.WhenAll(_repositories.Select(repository => _gitCommand.CreatePullRequestsAsync(this, repository, title.Trim(), description.Trim(), ct)));
     }
 
     public Task ForeachAsync(IEnumerable<string> command, CancellationToken ct = default)
     {
         return Task.WhenAll(_repositories.Select(repository => _shellCommand.ForeachAsync(this, repository, command, ct)));
-    }
-
-    private sealed class PullRequest
-    {
-        public PullRequest()
-        {
-            var lines = File.Exists(ReadmeFileName) ? File.ReadAllLines(ReadmeFileName) : Array.Empty<string>();
-        }
-
-        public string Title { get; } = string.Empty;
-
-        public string Description { get; } = string.Empty;
     }
 }

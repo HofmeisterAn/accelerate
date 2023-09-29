@@ -6,11 +6,11 @@ public sealed class AzureDevOps : Repository
     {
     }
 
-    private string Organization => Url.Segments[1].TrimEnd('/');
+    public string Organization => Url.Segments[1].TrimEnd('/');
 
-    private string Project => Url.Segments[2].TrimEnd('/');
+    public string Project => Url.Segments[2].TrimEnd('/');
 
-    private string Name => Url.Segments[4].TrimEnd('/');
+    public string Name => Url.Segments[4].TrimEnd('/');
 
     public sealed class Service : IGitCommand<AzureDevOps>, IShellCommand<AzureDevOps>
     {
@@ -58,7 +58,7 @@ public sealed class AzureDevOps : Repository
         {
             _logger.LogInformation("Push campaign {Campaign}", campaign.Name);
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
-            var args = new[] { "push" };
+            var args = new[] { "push", "--set-upstream", "origin", campaign.Name };
             return Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).ExecuteAsync(ct);
         }
 
@@ -84,13 +84,13 @@ public sealed class AzureDevOps : Repository
             const string api = "https://dev.azure.com/{0}/{1}/_apis/git/repositories/{2}/pullrequests?api-version=7.0";
             var requestUri = new Uri(string.Format(api, repository.Organization, repository.Project, repository.Name));
 
+            const string refsHeads = "refs/heads/";
             var sourceRefName = campaign.Name;
-
             var targetRefName = commandResult.StandardOutput.Trim().Split('/').Last();
 
             var prRequestBody = new Dictionary<string, string>();
-            prRequestBody.Add("sourceRefName", sourceRefName);
-            prRequestBody.Add("targetRefName", targetRefName);
+            prRequestBody.Add("sourceRefName", refsHeads + sourceRefName);
+            prRequestBody.Add("targetRefName", refsHeads + targetRefName);
             prRequestBody.Add("title", title);
             prRequestBody.Add("description", description);
 
@@ -104,7 +104,7 @@ public sealed class AzureDevOps : Repository
             httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Basic", parameter);
             httpRequest.Content = new StringContent(jsonString, Encoding.Default, "application/json");
 
-            _ = await httpClient.SendAsync(httpRequest, ct);
+            using var httpResponse = await httpClient.SendAsync(httpRequest, ct);
         }
 
         public Task ForeachAsync(Campaign campaign, AzureDevOps repository, IEnumerable<string> command, CancellationToken ct = default)

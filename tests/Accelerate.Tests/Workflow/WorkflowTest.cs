@@ -41,6 +41,7 @@ public sealed class WorkflowTest : IGitCommand<AzureDevOps>, IShellCommand<Azure
     {
         _actualCmds.Add(nameof(IGitCommand<Repository>.CloneAsync));
         Assert.Equal(_campaignId.Id, campaign.Name);
+        Assert.Equal(Cmd.Repo, repository.Url.ToString());
         return Task.CompletedTask;
     }
 
@@ -48,6 +49,7 @@ public sealed class WorkflowTest : IGitCommand<AzureDevOps>, IShellCommand<Azure
     {
         _actualCmds.Add(nameof(IGitCommand<Repository>.CheckoutAsync));
         Assert.Equal(_campaignId.Id, campaign.Name);
+        Assert.Equal(Cmd.Repo, repository.Url.ToString());
         return Task.CompletedTask;
     }
 
@@ -55,6 +57,7 @@ public sealed class WorkflowTest : IGitCommand<AzureDevOps>, IShellCommand<Azure
     {
         _actualCmds.Add(nameof(IGitCommand<Repository>.CommitAsync));
         Assert.Equal(_campaignId.Id, campaign.Name);
+        Assert.Equal(Cmd.Repo, repository.Url.ToString());
         return Task.CompletedTask;
     }
 
@@ -62,6 +65,7 @@ public sealed class WorkflowTest : IGitCommand<AzureDevOps>, IShellCommand<Azure
     {
         _actualCmds.Add(nameof(IGitCommand<Repository>.PushAsync));
         Assert.Equal(_campaignId.Id, campaign.Name);
+        Assert.Equal(Cmd.Repo, repository.Url.ToString());
         return Task.CompletedTask;
     }
 
@@ -69,6 +73,12 @@ public sealed class WorkflowTest : IGitCommand<AzureDevOps>, IShellCommand<Azure
     {
         _actualCmds.Add(nameof(IGitCommand<Repository>.CreatePullRequestsAsync));
         Assert.Equal(_campaignId.Id, campaign.Name);
+        Assert.Equal(Cmd.Repo, repository.Url.ToString());
+        Assert.Equal(Cmd.Organization, repository.Organization);
+        Assert.Equal(Cmd.Project, repository.Project);
+        Assert.Equal(Cmd.Name, repository.Name);
+        Assert.Equal(Cmd.PullRequestTitle, title);
+        Assert.Equal(Cmd.PullRequestDescription, description);
         return Task.CompletedTask;
     }
 

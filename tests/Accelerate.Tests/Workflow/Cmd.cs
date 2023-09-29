@@ -2,6 +2,22 @@ namespace Accelerate.Tests.Workflow;
 
 public class Cmd : AccelerateHostBuilder, IAsyncLifetime, IDisposable
 {
+    public const string PullRequestTitle = "Title";
+
+    public const string PullRequestDescription = "Lorem ipsum dolor sit amet";
+
+    public const string Organization = "organization";
+
+    public const string Project = "project";
+
+    public const string Name = "repository";
+
+    public const string Repo = "https://dev.azure.com/" + Organization + "/" + Project + "/_git/" + Name;
+
+    private const string ReadmeFileContent = "# " + PullRequestTitle + "\n" + PullRequestDescription;
+
+    private const string ReposFileContent = "[{\"type\":\"Accelerate.Repositories.AzureDevOps\",\"repo\":{\"url\":\"" + Repo + "\"}}]";
+
     private readonly Lazy<IHost> _lazyHost;
 
     public Cmd(IGitCommand<AzureDevOps> gitCommand, IShellCommand<AzureDevOps> shellCommand, params string[] args) : base(args)
@@ -50,6 +66,8 @@ public class Cmd : AccelerateHostBuilder, IAsyncLifetime, IDisposable
         public override Task DisposeAsync()
         {
             Directory.SetCurrentDirectory(_campaignId.Id);
+            File.WriteAllText(Campaign.ReadmeFileName, ReadmeFileContent);
+            File.WriteAllText(Campaign.ReposFileName, ReposFileContent);
             return base.DisposeAsync();
         }
     }

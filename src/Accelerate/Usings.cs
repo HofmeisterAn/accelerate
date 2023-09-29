@@ -21,6 +21,8 @@ global using Accelerate.Verbs;
 global using CliWrap;
 global using CliWrap.Buffered;
 global using CommandLine;
+global using Markdig;
+global using Markdig.Syntax;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Hosting;

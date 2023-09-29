@@ -2,7 +2,7 @@
    {
       "type": "Accelerate.Repositories.AzureDevOps",
       "repo": {
-         "url": "https://dev.azure.com/HofmeisterAn/GitHub/_git/testcontainers-dotnet-590"
+         "url": "https://dev.azure.com/{organization}/{project}/_git/{repository}"
       }
    }
 ]
