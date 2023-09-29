@@ -54,10 +54,13 @@ public sealed class Campaign
         }
 
         var message = new StringBuilder();
-        message.AppendLine("Accelerate initialized a new campaign:");
-        message.AppendLine("1. Change the current directory to the campaign \u001b[1m\u001b[32mcd " + name + "\u001b[0m");
-        message.AppendLine("2. Update the " + ReposFileName + " configuration and add the repositories that require changes");
-        message.AppendLine("2. Run the \u001b[1m\u001b[32maccelerate clone\u001b[0m command to clone the repositories");
+        message.Append("Accelerate initialized a new campaign:");
+        message.AppendLine();
+        message.Append("1. Change the current directory to the campaign \u001b[1m\u001b[32mcd " + name + "\u001b[0m");
+        message.AppendLine();
+        message.Append("2. Update the " + ReposFileName + " configuration and add the repositories that require changes");
+        message.AppendLine();
+        message.Append("3. Run the \u001b[1m\u001b[32maccelerate clone\u001b[0m command to clone the repositories");
         _logger.LogInformation(message.ToString());
     }
 

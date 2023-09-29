@@ -35,7 +35,7 @@ public sealed class AzureDevOps : Repository
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
             var args = new[] { "clone", repository.Url.ToString(), "." };
             _ = Directory.CreateDirectory(workDir);
-            return Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).ExecuteAsync(ct);
+            return Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).WithValidation(CommandResultValidation.None).ExecuteAsync(ct);
         }
 
         public Task CheckoutAsync(Campaign campaign, AzureDevOps repository, CancellationToken ct = default)
@@ -43,7 +43,7 @@ public sealed class AzureDevOps : Repository
             _logger.LogInformation("Create branch {Campaign}", campaign.Name);
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
             var args = new[] { "checkout", "-b", campaign.Name, "--track" };
-            return Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).ExecuteAsync(ct);
+            return Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).WithValidation(CommandResultValidation.None).ExecuteAsync(ct);
         }
 
         public Task CommitAsync(Campaign campaign, AzureDevOps repository, string message, CancellationToken ct = default)
@@ -51,7 +51,7 @@ public sealed class AzureDevOps : Repository
             _logger.LogInformation("Commit campaign {Campaign}", campaign.Name);
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
             var args = new[] { "commit", "--all", "--message", message };
-            return Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).ExecuteAsync(ct);
+            return Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).WithValidation(CommandResultValidation.None).ExecuteAsync(ct);
         }
 
         public Task PushAsync(Campaign campaign, AzureDevOps repository, CancellationToken ct = default)
@@ -59,7 +59,7 @@ public sealed class AzureDevOps : Repository
             _logger.LogInformation("Push campaign {Campaign}", campaign.Name);
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
             var args = new[] { "push", "--set-upstream", "origin", campaign.Name };
-            return Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).ExecuteAsync(ct);
+            return Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).WithValidation(CommandResultValidation.None).ExecuteAsync(ct);
         }
 
         public async Task CreatePullRequestsAsync(Campaign campaign, AzureDevOps repository, string title, string description, CancellationToken ct = default)
@@ -72,7 +72,6 @@ public sealed class AzureDevOps : Repository
             var commandResult = await Cli.Wrap(GitCli)
                 .WithWorkingDirectory(workDir)
                 .WithArguments(args)
-                .WithValidation(CommandResultValidation.ZeroExitCode)
                 .ExecuteBufferedAsync(ct);
 
             if (commandResult.ExitCode != 0)
@@ -110,9 +109,8 @@ public sealed class AzureDevOps : Repository
         public Task ForeachAsync(Campaign campaign, AzureDevOps repository, IEnumerable<string> command, CancellationToken ct = default)
         {
             _logger.LogInformation("Execute command in campaign {Campaign}", campaign.Name);
-            var shell = string.IsNullOrWhiteSpace(_shellSettings.Value.Shell) ? RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "PowerShell" : "sh" : _shellSettings.Value.Shell;
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
-            return Cli.Wrap(shell).WithWorkingDirectory(workDir).WithArguments(command).ExecuteAsync(ct);
+            return Cli.Wrap(_shellSettings.Value.Shell).WithWorkingDirectory(workDir).WithArguments(new [] { "-c", string.Join(' ', command) }).ExecuteAsync(ct);
         }
     }
 }
