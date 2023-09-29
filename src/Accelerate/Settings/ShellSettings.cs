@@ -1,4 +1,4 @@
-﻿namespace Accelerate.Settings;
+namespace Accelerate.Settings;
 
 public sealed class ShellSettings
 {

@@ -12,11 +12,14 @@ public sealed class Campaign
 
     private readonly IReadOnlyList<AzureDevOps> _repositories;
 
-    public Campaign(IGitCommand<AzureDevOps> gitCommand, IShellCommand<AzureDevOps> shellCommand)
+    private readonly ILogger<Campaign> _logger;
+
+    public Campaign(IGitCommand<AzureDevOps> gitCommand, IShellCommand<AzureDevOps> shellCommand, ILogger<Campaign> logger)
     {
         // TODO: Support other Git hosting platforms too.
         _gitCommand = gitCommand;
         _shellCommand = shellCommand;
+        _logger = logger;
 
         if (File.Exists(ReadmeFileName) && File.Exists(ReposFileName))
         {
@@ -49,6 +52,13 @@ public sealed class Campaign
             await inputStream!.CopyToAsync(outputStream, ct)
                 .ConfigureAwait(false);
         }
+
+        var message = new StringBuilder();
+        message.AppendLine("Accelerate initialized a new campaign:");
+        message.AppendLine("1. Change the current directory to the campaign \u001b[1m\u001b[32mcd " + name + "\u001b[0m");
+        message.AppendLine("2. Update the " + ReposFileName + " configuration and add the repositories that require changes");
+        message.AppendLine("2. Run the \u001b[1m\u001b[32maccelerate clone\u001b[0m command to clone the repositories");
+        _logger.LogInformation(message.ToString());
     }
 
     public async Task CloneAsync(CancellationToken ct = default)

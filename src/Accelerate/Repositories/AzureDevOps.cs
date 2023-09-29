@@ -40,7 +40,7 @@ public sealed class AzureDevOps : Repository
 
         public Task CheckoutAsync(Campaign campaign, AzureDevOps repository, CancellationToken ct = default)
         {
-            _logger.LogInformation("Create campaign {Campaign}", campaign.Name);
+            _logger.LogInformation("Create branch {Campaign}", campaign.Name);
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
             var args = new[] { "checkout", "-b", campaign.Name, "--track" };
             return Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).ExecuteAsync(ct);
