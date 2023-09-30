@@ -16,8 +16,8 @@ public class AccelerateHostBuilder : HostBuilder
             serviceCollection.AddHostedService<Execute>();
             serviceCollection.AddSingleton(argCollection);
             serviceCollection.AddSingleton<Campaign>();
-            serviceCollection.Configure<ShellSettings>(hostBuilder.Configuration.GetSection(nameof(ShellSettings)));
             serviceCollection.Configure<AzureDevOpsSettings>(hostBuilder.Configuration.GetSection(nameof(AzureDevOpsSettings)));
+            serviceCollection.Configure<ShellSettings>(hostBuilder.Configuration.GetSection(nameof(ShellSettings)));
             serviceCollection.AddSingleton<IGitCommand<AzureDevOps>, AzureDevOps.Service>();
             serviceCollection.AddSingleton<IShellCommand<AzureDevOps>, AzureDevOps.Service>();
         })

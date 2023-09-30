@@ -27,6 +27,11 @@ public class Cmd : AccelerateHostBuilder, IAsyncLifetime, IDisposable
         Configure(shellCommand);
     }
 
+    ~Cmd()
+    {
+        Dispose(false);
+    }
+
     public virtual Task InitializeAsync()
     {
         return _lazyHost.Value.StartAsync();
@@ -39,7 +44,16 @@ public class Cmd : AccelerateHostBuilder, IAsyncLifetime, IDisposable
 
     public void Dispose()
     {
-        _lazyHost.Value.Dispose();
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _lazyHost.Value.Dispose();
+        }
     }
 
     private void Configure<TService>(TService implementationInstance) where TService : class

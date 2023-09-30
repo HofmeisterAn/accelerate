@@ -31,11 +31,12 @@ public sealed class AzureDevOps : Repository
 
         public async Task<bool> CloneAsync(Campaign campaign, AzureDevOps repository, CancellationToken ct = default)
         {
+            _logger.LogInformation("Cloning {Repository}", repository.Url.AbsoluteUri);
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
             var args = new[] { "clone", repository.Url.ToString(), "." };
             _ = Directory.CreateDirectory(workDir);
             var commandResult = await Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).WithValidation(CommandResultValidation.None).ExecuteBufferedAsync(ct);
-            return IsSuccess(commandResult);
+            return new[] { 0, 128 /* Repository already exists. */ }.Contains(commandResult.ExitCode);
         }
 
         public async Task<bool> CheckoutAsync(Campaign campaign, AzureDevOps repository, CancellationToken ct = default)
@@ -43,7 +44,7 @@ public sealed class AzureDevOps : Repository
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
             var args = new[] { "checkout", "-b", campaign.Name, "--track" };
             var commandResult = await Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).WithValidation(CommandResultValidation.None).ExecuteBufferedAsync(ct);
-            return IsSuccess(commandResult);
+            return 0.Equals(commandResult.ExitCode);
         }
 
         public async Task<bool> CommitAsync(Campaign campaign, AzureDevOps repository, string message, CancellationToken ct = default)
@@ -51,7 +52,7 @@ public sealed class AzureDevOps : Repository
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
             var args = new[] { "commit", "--all", "--message", message };
             var commandResult = await Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).WithValidation(CommandResultValidation.None).ExecuteBufferedAsync(ct);
-            return IsSuccess(commandResult);
+            return 0.Equals(commandResult.ExitCode);
         }
 
         public async Task<bool> PushAsync(Campaign campaign, AzureDevOps repository, CancellationToken ct = default)
@@ -59,7 +60,7 @@ public sealed class AzureDevOps : Repository
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
             var args = new[] { "push", "--set-upstream", "origin", campaign.Name };
             var commandResult = await Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).WithValidation(CommandResultValidation.None).ExecuteBufferedAsync(ct);
-            return IsSuccess(commandResult);
+            return 0.Equals(commandResult.ExitCode);
         }
 
         public async Task<bool> CreatePullRequestsAsync(Campaign campaign, AzureDevOps repository, string title, string description, CancellationToken ct = default)
@@ -111,20 +112,7 @@ public sealed class AzureDevOps : Repository
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
             var args = new[] { "-c", string.Join(' ', command) };
             var commandResult = await Cli.Wrap(_shellSettings.Value.Shell).WithWorkingDirectory(workDir).WithArguments(args).WithValidation(CommandResultValidation.None).ExecuteBufferedAsync(ct);
-            return IsSuccess(commandResult);
-        }
-
-        private bool IsSuccess(BufferedCommandResult commandResult)
-        {
-            if (0.Equals(commandResult.ExitCode))
-            {
-                return true;
-            }
-            else
-            {
-                _logger.LogError(commandResult.StandardError);
-                return false;
-            }
+            return 0.Equals(commandResult.ExitCode);
         }
     }
 }

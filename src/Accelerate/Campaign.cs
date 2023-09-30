@@ -46,10 +46,9 @@ public sealed class Campaign
         {
             using var inputStream = assembly.GetManifestResourceStream(resourceName);
 
-            using var outputStream = File.OpenWrite(Path.Combine(name, resourceName.Replace(embeddedResourcePrefix, string.Empty)));
+            using var outputStream = File.Create(Path.Combine(name, resourceName.Replace(embeddedResourcePrefix, string.Empty)));
 
-            await inputStream!.CopyToAsync(outputStream, ct)
-                .ConfigureAwait(false);
+            await inputStream!.CopyToAsync(outputStream, ct);
         }
 
         var message = new StringBuilder();
@@ -65,26 +64,40 @@ public sealed class Campaign
 
     public async Task CloneAsync(CancellationToken ct = default)
     {
-        await Task.WhenAll(_repositories.Select(repository => _gitCommand.CloneAsync(this, repository, ct)))
-            .ConfigureAwait(false);
+        _logger.LogInformation("Initiating clone process.");
+        var results = await Task.WhenAll(_repositories.Select(repository => _gitCommand.CloneAsync(this, repository, ct)));
+        var successful = results.Where(result => result);
+        var failure = results.Where(result => !result);
+        _logger.LogInformation("Clone process completed. Successfully cloned {Successful} repositories with {Failure} failures.", successful.Count(), failure.Count());
 
-        await Task.WhenAll(_repositories.Select(repository => _gitCommand.CheckoutAsync(this, repository, ct)))
-            .ConfigureAwait(false);
+        _logger.LogInformation("Initiating checkout process.");
+        results = await Task.WhenAll(_repositories.Select(repository => _gitCommand.CheckoutAsync(this, repository, ct)));
+        successful = results.Where(result => result);
+        failure = results.Where(result => !result);
+        _logger.LogInformation("Checkout process completed. Successfully checked out {Successful} branches with {Failure} failures.", successful.Count(), failure.Count());
     }
 
-    public Task CommitAsync(string message, CancellationToken ct = default)
+    public async Task CommitAsync(string message, CancellationToken ct = default)
     {
-        return Task.WhenAll(_repositories.Select(repository => _gitCommand.CommitAsync(this, repository, message, ct)));
+        _logger.LogInformation("Initiating commit process.");
+        var results = await Task.WhenAll(_repositories.Select(repository => _gitCommand.CommitAsync(this, repository, message, ct)));
+        var successful = results.Where(result => result);
+        var failure = results.Where(result => !result);
+        _logger.LogInformation("Commit process completed. Successfully committed to {Successful} repositories with {Failure} failures.", successful.Count(), failure.Count());
     }
 
-    public Task PushAsync(CancellationToken ct = default)
+    public async Task PushAsync(CancellationToken ct = default)
     {
-        return Task.WhenAll(_repositories.Select(repository => _gitCommand.PushAsync(this, repository, ct)));
+        _logger.LogInformation("Initiating push process.");
+        var results = await Task.WhenAll(_repositories.Select(repository => _gitCommand.PushAsync(this, repository, ct)));
+        var successful = results.Where(result => result);
+        var failure = results.Where(result => !result);
+        _logger.LogInformation("Push process completed. Successfully pushed to {Successful} repositories with {Failure} failures.", successful.Count(), failure.Count());
     }
 
-    public Task CreatePullRequestAsync(CancellationToken ct = default)
+    public async Task CreatePullRequestAsync(CancellationToken ct = default)
     {
-        var readme = File.ReadAllText(ReadmeFileName);
+        var readme = await File.ReadAllTextAsync(ReadmeFileName, ct);
 
         var markdown = Markdown.Parse(readme);
 
@@ -94,11 +107,19 @@ public sealed class Campaign
 
         var description = readme.Substring(heading.Span.End + 1, markdown.Span.Length - heading.Span.Length);
 
-        return Task.WhenAll(_repositories.Select(repository => _gitCommand.CreatePullRequestsAsync(this, repository, title.Trim(), description.Trim(), ct)));
+        _logger.LogInformation("Initiating pull request creation.");
+        var results = await Task.WhenAll(_repositories.Select(repository => _gitCommand.CreatePullRequestsAsync(this, repository, title.Trim(), description.Trim(), ct)));
+        var successful = results.Where(result => result);
+        var failure = results.Where(result => !result);
+        _logger.LogInformation("Pull request creation completed. Successfully created {Successful} pull requests with {Failure} failures.", successful.Count(), failure.Count());
     }
 
-    public Task ForeachAsync(IEnumerable<string> command, CancellationToken ct = default)
+    public async Task ForeachAsync(IEnumerable<string> command, CancellationToken ct = default)
     {
-        return Task.WhenAll(_repositories.Select(repository => _shellCommand.ForeachAsync(this, repository, command, ct)));
+        _logger.LogInformation("Initiating command execution.");
+        var results = await Task.WhenAll(_repositories.Select(repository => _shellCommand.ForeachAsync(this, repository, command, ct)));
+        var successful = results.Where(result => result);
+        var failure = results.Where(result => !result);
+        _logger.LogInformation("Command execution completed. Successfully executed {Successful} commands with {Failure} failures.", successful.Count(), failure.Count());
     }
 }

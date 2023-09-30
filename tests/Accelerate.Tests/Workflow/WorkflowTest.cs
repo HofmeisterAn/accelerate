@@ -7,6 +7,27 @@ public sealed class WorkflowTest : IGitCommand<AzureDevOps>, IShellCommand<Azure
     private readonly CampaignId _campaignId = new CampaignId();
 
     [Fact]
+    public void Should_Configure_Workflow_Successfully()
+    {
+        // Given
+        var inMemorySettings = new Dictionary<string, string>();
+        inMemorySettings.Add(string.Join(':', nameof(AzureDevOpsSettings), nameof(AzureDevOpsSettings.AuthToken)), _campaignId.Id);
+        inMemorySettings.Add(string.Join(':', nameof(ShellSettings), nameof(ShellSettings.Shell)), _campaignId.Id);
+
+        // When
+        var cmd = new Cmd.Init(_campaignId, this, this)
+            .ConfigureAppConfiguration(configuration => configuration.AddInMemoryCollection(inMemorySettings))
+            .Build();
+
+        var azureDevOpsSettings = cmd.Services.GetRequiredService<IOptions<AzureDevOpsSettings>>();
+        var shellSettings = cmd.Services.GetRequiredService<IOptions<ShellSettings>>();
+
+        // Then
+        Assert.Equal(_campaignId.Id, azureDevOpsSettings.Value.AuthToken);
+        Assert.Equal(_campaignId.Id, shellSettings.Value.Shell);
+    }
+
+    [Fact]
     public async Task Should_Execute_Workflow_Successfully()
     {
         // Given
@@ -42,6 +63,8 @@ public sealed class WorkflowTest : IGitCommand<AzureDevOps>, IShellCommand<Azure
         _actualCmds.Add(nameof(IGitCommand<Repository>.CloneAsync));
         Assert.Equal(_campaignId.Id, campaign.Name);
         Assert.Equal(Cmd.Repo, repository.Url.ToString());
+        Assert.NotEmpty(campaign.WorkingDirectoryPath);
+        Assert.NotEmpty(repository.WorkingDirectoryPath);
         return Task.FromResult(true);
     }
 
