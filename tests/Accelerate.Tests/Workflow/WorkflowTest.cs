@@ -37,39 +37,39 @@ public sealed class WorkflowTest : IGitCommand<AzureDevOps>, IShellCommand<Azure
         Assert.Equivalent(typeof(IShellCommand<Repository>).GetMethods().Select(methodInfo => methodInfo.Name), _actualCmds);
     }
 
-    Task IGitCommand<AzureDevOps>.CloneAsync(Campaign campaign, AzureDevOps repository, CancellationToken ct)
+    Task<bool> IGitCommand<AzureDevOps>.CloneAsync(Campaign campaign, AzureDevOps repository, CancellationToken ct)
     {
         _actualCmds.Add(nameof(IGitCommand<Repository>.CloneAsync));
         Assert.Equal(_campaignId.Id, campaign.Name);
         Assert.Equal(Cmd.Repo, repository.Url.ToString());
-        return Task.CompletedTask;
+        return Task.FromResult(true);
     }
 
-    Task IGitCommand<AzureDevOps>.CheckoutAsync(Campaign campaign, AzureDevOps repository, CancellationToken ct)
+    Task<bool> IGitCommand<AzureDevOps>.CheckoutAsync(Campaign campaign, AzureDevOps repository, CancellationToken ct)
     {
         _actualCmds.Add(nameof(IGitCommand<Repository>.CheckoutAsync));
         Assert.Equal(_campaignId.Id, campaign.Name);
         Assert.Equal(Cmd.Repo, repository.Url.ToString());
-        return Task.CompletedTask;
+        return Task.FromResult(true);
     }
 
-    Task IGitCommand<AzureDevOps>.CommitAsync(Campaign campaign, AzureDevOps repository, string commit, CancellationToken ct)
+    Task<bool> IGitCommand<AzureDevOps>.CommitAsync(Campaign campaign, AzureDevOps repository, string commit, CancellationToken ct)
     {
         _actualCmds.Add(nameof(IGitCommand<Repository>.CommitAsync));
         Assert.Equal(_campaignId.Id, campaign.Name);
         Assert.Equal(Cmd.Repo, repository.Url.ToString());
-        return Task.CompletedTask;
+        return Task.FromResult(true);
     }
 
-    Task IGitCommand<AzureDevOps>.PushAsync(Campaign campaign, AzureDevOps repository, CancellationToken ct)
+    Task<bool> IGitCommand<AzureDevOps>.PushAsync(Campaign campaign, AzureDevOps repository, CancellationToken ct)
     {
         _actualCmds.Add(nameof(IGitCommand<Repository>.PushAsync));
         Assert.Equal(_campaignId.Id, campaign.Name);
         Assert.Equal(Cmd.Repo, repository.Url.ToString());
-        return Task.CompletedTask;
+        return Task.FromResult(true);
     }
 
-    Task IGitCommand<AzureDevOps>.CreatePullRequestsAsync(Campaign campaign, AzureDevOps repository, string title, string description, CancellationToken ct)
+    Task<bool> IGitCommand<AzureDevOps>.CreatePullRequestsAsync(Campaign campaign, AzureDevOps repository, string title, string description, CancellationToken ct)
     {
         _actualCmds.Add(nameof(IGitCommand<Repository>.CreatePullRequestsAsync));
         Assert.Equal(_campaignId.Id, campaign.Name);
@@ -79,14 +79,14 @@ public sealed class WorkflowTest : IGitCommand<AzureDevOps>, IShellCommand<Azure
         Assert.Equal(Cmd.Name, repository.Name);
         Assert.Equal(Cmd.PullRequestTitle, title);
         Assert.Equal(Cmd.PullRequestDescription, description);
-        return Task.CompletedTask;
+        return Task.FromResult(true);
     }
 
-    Task IShellCommand<AzureDevOps>.ForeachAsync(Campaign campaign, AzureDevOps repository, IEnumerable<string> command, CancellationToken ct)
+    Task<bool> IShellCommand<AzureDevOps>.ForeachAsync(Campaign campaign, AzureDevOps repository, IEnumerable<string> command, CancellationToken ct)
     {
         _actualCmds.Add(nameof(IShellCommand<Repository>.ForeachAsync));
         Assert.Equal(_campaignId.Id, campaign.Name);
-        return Task.CompletedTask;
+        return Task.FromResult(true);
     }
 
     public void Dispose()

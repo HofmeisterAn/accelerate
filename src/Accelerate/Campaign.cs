@@ -16,7 +16,6 @@ public sealed class Campaign
 
     public Campaign(IGitCommand<AzureDevOps> gitCommand, IShellCommand<AzureDevOps> shellCommand, ILogger<Campaign> logger)
     {
-        // TODO: Support other Git hosting platforms too.
         _gitCommand = gitCommand;
         _shellCommand = shellCommand;
         _logger = logger;

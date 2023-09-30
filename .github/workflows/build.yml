@@ -11,6 +11,7 @@ env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   DOTNET_USE_POLLING_FILE_WATCHER: true
   NUGET_XMLDOC_MODE: skip
+  CONFIGURATION: Release
 jobs:
   build:
     strategy:
@@ -20,14 +21,35 @@ jobs:
           - ubuntu-22.04
           - windows-2022
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
-      - name: Restore
+      - name: Restore NuGet
         run: dotnet restore
-      - name: Build
-        run: dotnet build --no-restore
-      - name: Test
-        run: dotnet test --no-restore --no-build
+      - name: Build Solution
+        run: dotnet build --configuration ${{ env.CONFIGURATION }} --no-restore
+      - name: Test Solution
+        run: dotnet test --configuration ${{ env.CONFIGURATION }} --no-restore --no-build
+      - name: Setup Workflow
+        run: |
+          git config --global user.email "9199345+HofmeisterAn@users.noreply.github.com"
+          git config --global user.name "Andre Hofmeister"
+          echo "${{ github.WORKSPACE }}/src/Accelerate/bin/${{ env.CONFIGURATION }}/net6.0/" >> $GITHUB_PATH
+      - name: Test Workflow
+        run: |
+          workflow_git_dir="HofmeisterAn/GitHub/_git/testcontainers-dotnet-docker-compose/"
+          workflow_git_commit_msg="feat: Add demo.txt"
+          Accelerate init --name ${{ github.RUN_ID }}
+          cd ${{ github.RUN_ID }}
+          echo "[{\"type\":\"Accelerate.Repositories.AzureDevOps\",\"repo\":{\"url\":\"https://HofmeisterAn@dev.azure.com/$workflow_git_dir\"}}]" > repos.json
+          Accelerate clone
+          Accelerate foreach "echo $(date) > demo.txt"
+          Accelerate foreach "git add ."
+          Accelerate commit --message "$workflow_git_commit_msg"
+          last_commit_msg=$(git --git-dir "work/$workflow_git_dir.git" log -1 --pretty=%B)
+          if [ "$workflow_git_commit_msg" == "$last_commit_msg" ]; then exit 0; else exit 1; fi

@@ -8,32 +8,32 @@ public sealed class GitHub : Repository
 
     public sealed class Service : IGitCommand<GitHub>, IShellCommand<AzureDevOps>
     {
-        public Task CloneAsync(Campaign campaign, GitHub repository, CancellationToken ct = default)
+        public Task<bool> CloneAsync(Campaign campaign, GitHub repository, CancellationToken ct = default)
         {
             throw new NotImplementedException();
         }
 
-        public Task CheckoutAsync(Campaign campaign, GitHub repository, CancellationToken ct = default)
+        public Task<bool> CheckoutAsync(Campaign campaign, GitHub repository, CancellationToken ct = default)
         {
             throw new NotImplementedException();
         }
 
-        public Task CommitAsync(Campaign campaign, GitHub repository, string commit, CancellationToken ct = default)
+        public Task<bool> CommitAsync(Campaign campaign, GitHub repository, string commit, CancellationToken ct = default)
         {
             throw new NotImplementedException();
         }
 
-        public Task PushAsync(Campaign campaign, GitHub repository, CancellationToken ct = default)
+        public Task<bool> PushAsync(Campaign campaign, GitHub repository, CancellationToken ct = default)
         {
             throw new NotImplementedException();
         }
 
-        public Task CreatePullRequestsAsync(Campaign campaign, GitHub repository, string title, string description, CancellationToken ct = default)
+        public Task<bool> CreatePullRequestsAsync(Campaign campaign, GitHub repository, string title, string description, CancellationToken ct = default)
         {
             throw new NotImplementedException();
         }
 
-        public Task ForeachAsync(Campaign campaign, AzureDevOps repository, IEnumerable<string> command, CancellationToken ct = default)
+        public Task<bool> ForeachAsync(Campaign campaign, AzureDevOps repository, IEnumerable<string> command, CancellationToken ct = default)
         {
             throw new NotImplementedException();
         }

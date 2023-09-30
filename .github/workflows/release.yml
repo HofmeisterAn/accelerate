@@ -9,6 +9,7 @@ env:
   DOTNET_USE_POLLING_FILE_WATCHER: true
   NUGET_XMLDOC_MODE: skip
   NUGET_FEED_API_KEY: ${{ secrets.NUGET_FEED_API_KEY }}
+  CONFIGURATION: Release
 jobs:
   release:
     runs-on: ubuntu-22.04
@@ -18,6 +19,6 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
       - name: Pack
-        run: dotnet pack --configuration Release --output . /p:Version=$GITHUB_REF_NAME
+        run: dotnet pack --configuration $CONFIGURATION --output . /p:Version=$GITHUB_REF_NAME
       - name: Pack
         run: dotnet nuget push *.nupkg --source $NUGET_FEED_SOURCE --api-key $NUGET_FEED_API_KEY

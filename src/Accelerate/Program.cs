@@ -18,11 +18,7 @@ public class AccelerateHostBuilder : HostBuilder
             serviceCollection.AddSingleton<Campaign>();
             serviceCollection.Configure<ShellSettings>(hostBuilder.Configuration.GetSection(nameof(ShellSettings)));
             serviceCollection.Configure<AzureDevOpsSettings>(hostBuilder.Configuration.GetSection(nameof(AzureDevOpsSettings)));
-
-            // TODO: Change the implementation to work with the actual base class `Repository`.
             serviceCollection.AddSingleton<IGitCommand<AzureDevOps>, AzureDevOps.Service>();
-
-            // TODO: Share the foreach implementation across repositories.
             serviceCollection.AddSingleton<IShellCommand<AzureDevOps>, AzureDevOps.Service>();
         })
         .ConfigureDefaults(args);
