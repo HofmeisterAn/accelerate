@@ -97,15 +97,49 @@ public sealed class Campaign
 
     public async Task CreatePullRequestAsync(CancellationToken ct = default)
     {
+        if (!File.Exists(ReadmeFileName))
+        {
+            throw new FileNotFoundException("The '" + ReadmeFileName + "' file could not be found. Please make sure that the file exists in the campaign.", ReadmeFileName);
+        }
+
+        MarkdownDocument markdown;
+
+        HeadingBlock heading;
+
+        string title;
+
+        string description;
+
         var readme = await File.ReadAllTextAsync(ReadmeFileName, ct);
 
-        var markdown = Markdown.Parse(readme);
+        try
+        {
+            markdown = Markdown.Parse(readme, true);
+            heading = markdown.OfType<HeadingBlock>().First();
+            _ = markdown.Remove(heading);
+        }
+        catch (InvalidOperationException)
+        {
+            throw new AccelerateException(AccelerateErrorCode.Failure);
+        }
+        catch (Exception)
+        {
+            throw new AccelerateException(AccelerateErrorCode.Failure);
+        }
 
-        var heading = markdown.OfType<HeadingBlock>().First();
+        using (var stringWriter = new StringWriter())
+        {
+            var renderer = new RoundtripRenderer(stringWriter);
+            renderer.WriteLeafInline(heading);
+            title = stringWriter.ToString();
+        }
 
-        var title = readme.Substring(heading.Span.Start + heading.Level + 1, heading.Span.Length - heading.Level - 1);
-
-        var description = readme.Substring(heading.Span.End + 1, markdown.Span.Length - heading.Span.Length);
+        using (var stringWriter = new StringWriter())
+        {
+            var renderer = new RoundtripRenderer(stringWriter);
+            renderer.Write(markdown);
+            description = stringWriter.ToString();
+        }
 
         _logger.LogInformation("Initiating pull request creation.");
         var results = await Task.WhenAll(_repositories.Select(repository => _gitCommand.CreatePullRequestsAsync(this, repository, title.Trim(), description.Trim(), ct)));

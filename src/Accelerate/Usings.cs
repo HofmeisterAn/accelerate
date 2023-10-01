@@ -22,6 +22,7 @@ global using CliWrap;
 global using CliWrap.Buffered;
 global using CommandLine;
 global using Markdig;
+global using Markdig.Renderers.Roundtrip;
 global using Markdig.Syntax;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
