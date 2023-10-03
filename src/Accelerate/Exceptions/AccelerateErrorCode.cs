@@ -2,5 +2,17 @@ namespace Accelerate.Exceptions;
 
 public enum AccelerateErrorCode
 {
-    Failure
+    None,
+
+    Undefined,
+
+    GitCommandExecutionFailed,
+
+    ParsingMarkdownDocumentFailed,
+
+    MarkdownDocumentHeadingMissing,
+
+    AuthenticationCredentialsMissing,
+
+    CreatingPullRequestFailed
 }

@@ -64,42 +64,69 @@ public sealed class Campaign
 
     public async Task CloneAsync(CancellationToken ct = default)
     {
-        _logger.LogInformation("Initiating clone process.");
-        var results = await Task.WhenAll(_repositories.Select(repository => _gitCommand.CloneAsync(this, repository, ct)));
-        var successful = results.Where(result => result);
-        var failure = results.Where(result => !result);
-        _logger.LogInformation("Clone process completed. Successfully cloned {Successful} repositories with {Failure} failures.", successful.Count(), failure.Count());
+        IEnumerable<bool> results;
+        int successful;
+        int failure;
 
-        _logger.LogInformation("Initiating checkout process.");
+        _logger.LogInformation("Cmd=\"{Cmd}\" Status=\"{Status}\"", "Clone", "Running");
+        results = await Task.WhenAll(_repositories.Select(repository => _gitCommand.CloneAsync(this, repository, ct)));
+        successful = results.Count(result => result);
+        failure = results.Count(result => !result);
+        _logger.LogInformation("Cmd=\"{Cmd}\" Status=\"{Status}\" Successful={Successful} Failure={Failure}", "Clone", "Completed", successful, failure);
+
+        if (failure > 0)
+        {
+            throw new AccelerateException(AccelerateErrorCode.GitCommandExecutionFailed);
+        }
+
+        _logger.LogInformation("Cmd=\"{Cmd}\" Status=\"{Status}\"", "Checkout", "Running");
         results = await Task.WhenAll(_repositories.Select(repository => _gitCommand.CheckoutAsync(this, repository, ct)));
-        successful = results.Where(result => result);
-        failure = results.Where(result => !result);
-        _logger.LogInformation("Checkout process completed. Successfully checked out {Successful} branches with {Failure} failures.", successful.Count(), failure.Count());
+        successful = results.Count(result => result);
+        failure = results.Count(result => !result);
+        _logger.LogInformation("Cmd=\"{Cmd}\" Status=\"{Status}\" Successful={Successful} Failure={Failure}", "Checkout", "Completed", successful, failure);
+
+        if (failure > 0)
+        {
+            throw new AccelerateException(AccelerateErrorCode.GitCommandExecutionFailed);
+        }
     }
 
     public async Task CommitAsync(string message, CancellationToken ct = default)
     {
-        _logger.LogInformation("Initiating commit process.");
+        _logger.LogInformation("Cmd=\"{Cmd}\" Status=\"{Status}\"", "Commit", "Running");
         var results = await Task.WhenAll(_repositories.Select(repository => _gitCommand.CommitAsync(this, repository, message, ct)));
-        var successful = results.Where(result => result);
-        var failure = results.Where(result => !result);
-        _logger.LogInformation("Commit process completed. Successfully committed to {Successful} repositories with {Failure} failures.", successful.Count(), failure.Count());
+        var successful = results.Count(result => result);
+        var failure = results.Count(result => !result);
+        _logger.LogInformation("Cmd=\"{Cmd}\" Status=\"{Status}\" Successful={Successful} Failure={Failure}", "Commit", "Completed", successful, failure);
+
+        if (failure > 0)
+        {
+            throw new AccelerateException(AccelerateErrorCode.GitCommandExecutionFailed);
+        }
     }
 
     public async Task PushAsync(CancellationToken ct = default)
     {
-        _logger.LogInformation("Initiating push process.");
+        _logger.LogInformation("Cmd=\"{Cmd}\" Status=\"{Status}\"", "Push", "Running");
         var results = await Task.WhenAll(_repositories.Select(repository => _gitCommand.PushAsync(this, repository, ct)));
-        var successful = results.Where(result => result);
-        var failure = results.Where(result => !result);
-        _logger.LogInformation("Push process completed. Successfully pushed to {Successful} repositories with {Failure} failures.", successful.Count(), failure.Count());
+        var successful = results.Count(result => result);
+        var failure = results.Count(result => !result);
+        _logger.LogInformation("Cmd=\"{Cmd}\" Status=\"{Status}\" Successful={Successful} Failure={Failure}", "Push", "Completed", successful, failure);
+
+        if (failure > 0)
+        {
+            throw new AccelerateException(AccelerateErrorCode.GitCommandExecutionFailed);
+        }
     }
 
     public async Task CreatePullRequestAsync(CancellationToken ct = default)
     {
+        _logger.LogInformation("Cmd=\"{Cmd}\" Status=\"{Status}\"", "Create Pull Requests", "Running");
+
         if (!File.Exists(ReadmeFileName))
         {
-            throw new FileNotFoundException("The '" + ReadmeFileName + "' file could not be found. Please make sure that the file exists in the campaign.", ReadmeFileName);
+            _logger.LogError("The '" + ReadmeFileName + "' file could not be found. Please make sure that the file exists in the campaign.");
+            throw new AccelerateException(AccelerateErrorCode.Undefined);
         }
 
         MarkdownDocument markdown;
@@ -120,11 +147,11 @@ public sealed class Campaign
         }
         catch (InvalidOperationException)
         {
-            throw new AccelerateException(AccelerateErrorCode.Failure);
+            throw new AccelerateException(AccelerateErrorCode.MarkdownDocumentHeadingMissing);
         }
         catch (Exception)
         {
-            throw new AccelerateException(AccelerateErrorCode.Failure);
+            throw new AccelerateException(AccelerateErrorCode.ParsingMarkdownDocumentFailed);
         }
 
         using (var stringWriter = new StringWriter())
@@ -141,19 +168,28 @@ public sealed class Campaign
             description = stringWriter.ToString();
         }
 
-        _logger.LogInformation("Initiating pull request creation.");
         var results = await Task.WhenAll(_repositories.Select(repository => _gitCommand.CreatePullRequestsAsync(this, repository, title.Trim(), description.Trim(), ct)));
-        var successful = results.Where(result => result);
-        var failure = results.Where(result => !result);
-        _logger.LogInformation("Pull request creation completed. Successfully created {Successful} pull requests with {Failure} failures.", successful.Count(), failure.Count());
+        var successful = results.Count(result => result);
+        var failure = results.Count(result => !result);
+        _logger.LogInformation("Cmd=\"{Cmd}\" Status=\"{Status}\" Successful={Successful} Failure={Failure}", "Create Pull Requests", "Completed", successful, failure);
+
+        if (failure > 0)
+        {
+            throw new AccelerateException(AccelerateErrorCode.CreatingPullRequestFailed);
+        }
     }
 
     public async Task ForeachAsync(IEnumerable<string> command, CancellationToken ct = default)
     {
-        _logger.LogInformation("Initiating command execution.");
+        _logger.LogInformation("Cmd=\"{Cmd}\" Status=\"{Status}\"", "Foreach", "Running");
         var results = await Task.WhenAll(_repositories.Select(repository => _shellCommand.ForeachAsync(this, repository, command, ct)));
-        var successful = results.Where(result => result);
-        var failure = results.Where(result => !result);
-        _logger.LogInformation("Command execution completed. Successfully executed {Successful} commands with {Failure} failures.", successful.Count(), failure.Count());
+        var successful = results.Count(result => result);
+        var failure = results.Count(result => !result);
+        _logger.LogInformation("Cmd=\"{Cmd}\" Status=\"{Status}\" Successful={Successful} Failure={Failure}", "Foreach", "Completed", successful, failure);
+
+        if (failure > 0)
+        {
+            throw new AccelerateException(AccelerateErrorCode.GitCommandExecutionFailed);
+        }
     }
 }

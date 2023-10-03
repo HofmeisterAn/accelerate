@@ -2,8 +2,10 @@ namespace Accelerate.Exceptions;
 
 public sealed class AccelerateException : Exception
 {
-    public AccelerateException(AccelerateErrorCode errorCode)
+    public AccelerateException(AccelerateErrorCode errorCode) : base("Accelerate command failed: " + errorCode)
     {
-        _ = errorCode;
+        ErrorCode = errorCode;
     }
+
+    public AccelerateErrorCode ErrorCode { get; }
 }

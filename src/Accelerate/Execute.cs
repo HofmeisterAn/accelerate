@@ -12,7 +12,7 @@ public sealed class Execute : IHostedService
         _campaign = campaign;
     }
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
         // The CommandLineParser does not support an option that matches everything after the verb.
         var isForeachVerb = _args.Count > 0 && "foreach".Equals(_args[0], StringComparison.Ordinal);
@@ -23,7 +23,15 @@ public sealed class Execute : IHostedService
         var pushTask = parsedArgs.WithParsedAsync<PushVerb>(_ => _campaign.PushAsync(cancellationToken));
         var createPrTask = parsedArgs.WithParsedAsync<CreatePullRequests>(_ => _campaign.CreatePullRequestAsync(cancellationToken));
         var foreachTask = parsedArgs.WithParsedAsync<ForeachVerb>(_ => _campaign.ForeachAsync(_args.Skip(1), cancellationToken));
-        return Task.WhenAll(initTask, cloneTask, commitTask, pushTask, createPrTask, foreachTask);
+
+        try
+        {
+            await Task.WhenAll(initTask, cloneTask, commitTask, pushTask, createPrTask, foreachTask);
+        }
+        catch (AccelerateException e)
+        {
+            Environment.Exit((int)e.ErrorCode);
+        }
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

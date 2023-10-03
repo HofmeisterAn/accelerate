@@ -9,7 +9,10 @@ public abstract class Repository
     }
 
     [JsonIgnore]
-    public string WorkingDirectoryPath => Path.Combine(Url.Segments.Select(segment => segment.Trim('/')).ToArray());
+    public string WorkingDirectoryPath => Path.Combine(Url.Segments
+        .Select(segment => segment.Trim('/'))
+        .Select(segment => segment.RemoveInvalidChars())
+        .ToArray());
 
     [JsonPropertyName("url")]
     public Uri Url { get; }

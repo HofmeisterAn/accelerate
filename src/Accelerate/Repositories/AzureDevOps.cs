@@ -6,11 +6,11 @@ public sealed class AzureDevOps : Repository
     {
     }
 
-    public string Organization => Url.Segments[1].Trim('/');
+    public string Organization => Url.Segments[1].Trim('/').RemoveInvalidChars();
 
-    public string Project => Url.Segments[2].Trim('/');
+    public string Project => Url.Segments[2].Trim('/').RemoveInvalidChars();
 
-    public string Name => Url.Segments[4].Trim('/');
+    public string Name => Url.Segments[4].Trim('/').RemoveInvalidChars();
 
     public sealed class Service : IGitCommand<AzureDevOps>, IShellCommand<AzureDevOps>
     {
@@ -31,12 +31,12 @@ public sealed class AzureDevOps : Repository
 
         public async Task<bool> CloneAsync(Campaign campaign, AzureDevOps repository, CancellationToken ct = default)
         {
-            _logger.LogInformation("Cloning {Repository}", repository.Url.AbsoluteUri);
+            _logger.LogInformation("Repository=\"{Repository}\"", repository.Url.AbsoluteUri);
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
             var args = new[] { "clone", repository.Url.ToString(), "." };
             _ = Directory.CreateDirectory(workDir);
             var commandResult = await Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).WithValidation(CommandResultValidation.None).ExecuteBufferedAsync(ct);
-            return new[] { 0, 128 /* Repository already exists. */ }.Contains(commandResult.ExitCode);
+            return LogAndValidate(campaign, repository, commandResult, 0, 128);
         }
 
         public async Task<bool> CheckoutAsync(Campaign campaign, AzureDevOps repository, CancellationToken ct = default)
@@ -44,7 +44,7 @@ public sealed class AzureDevOps : Repository
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
             var args = new[] { "checkout", "-b", campaign.Name, "--track" };
             var commandResult = await Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).WithValidation(CommandResultValidation.None).ExecuteBufferedAsync(ct);
-            return 0.Equals(commandResult.ExitCode);
+            return LogAndValidate(campaign, repository, commandResult, 0);
         }
 
         public async Task<bool> CommitAsync(Campaign campaign, AzureDevOps repository, string message, CancellationToken ct = default)
@@ -52,7 +52,7 @@ public sealed class AzureDevOps : Repository
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
             var args = new[] { "commit", "--all", "--message", message };
             var commandResult = await Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).WithValidation(CommandResultValidation.None).ExecuteBufferedAsync(ct);
-            return 0.Equals(commandResult.ExitCode);
+            return LogAndValidate(campaign, repository, commandResult, 0);
         }
 
         public async Task<bool> PushAsync(Campaign campaign, AzureDevOps repository, CancellationToken ct = default)
@@ -60,7 +60,7 @@ public sealed class AzureDevOps : Repository
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
             var args = new[] { "push", "--set-upstream", "origin", campaign.Name };
             var commandResult = await Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).WithValidation(CommandResultValidation.None).ExecuteBufferedAsync(ct);
-            return 0.Equals(commandResult.ExitCode);
+            return LogAndValidate(campaign, repository, commandResult, 0);
         }
 
         public async Task<bool> CreatePullRequestsAsync(Campaign campaign, AzureDevOps repository, string title, string description, CancellationToken ct = default)
@@ -74,11 +74,7 @@ public sealed class AzureDevOps : Repository
                 .WithValidation(CommandResultValidation.None)
                 .ExecuteBufferedAsync(ct);
 
-            if (commandResult.ExitCode != 0)
-            {
-                _logger.LogError(commandResult.StandardError);
-                return false;
-            }
+            _ = LogAndValidate(campaign, repository, commandResult);
 
             const string api = "https://dev.azure.com/{0}/{1}/_apis/git/repositories/{2}/pullrequests?api-version=7.0";
             var requestUri = new Uri(string.Format(api, repository.Organization, repository.Project, repository.Name));
@@ -104,7 +100,16 @@ public sealed class AzureDevOps : Repository
             httpRequest.Content = new StringContent(jsonString, Encoding.Default, "application/json");
 
             using var httpResponse = await httpClient.SendAsync(httpRequest, ct);
-            return true;
+
+            if (httpResponse.IsSuccessStatusCode)
+            {
+                return true;
+            }
+
+            var httpContent = await httpResponse.Content.ReadAsStringAsync(ct);
+
+            _logger.LogError("Repository=\"{Repository}\" Msg=\"{Msg}\"", repository.Name, httpContent);
+            return false;
         }
 
         public async Task<bool> ForeachAsync(Campaign campaign, AzureDevOps repository, IEnumerable<string> command, CancellationToken ct = default)
@@ -112,7 +117,25 @@ public sealed class AzureDevOps : Repository
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
             var args = new[] { "-c", string.Join(' ', command) };
             var commandResult = await Cli.Wrap(_shellSettings.Value.Shell).WithWorkingDirectory(workDir).WithArguments(args).WithValidation(CommandResultValidation.None).ExecuteBufferedAsync(ct);
-            return 0.Equals(commandResult.ExitCode);
+            return LogAndValidate(campaign, repository, commandResult, 0);
+        }
+
+        private bool LogAndValidate(Campaign campaign, AzureDevOps repository, BufferedCommandResult result, params int[] successExitCodes)
+        {
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("Repository=\"{Repository}\" Msg=\"{Msg}\"", repository.Name, result.StandardOutput.EscapeLineEndings());
+            }
+
+            if (successExitCodes.Contains(result.ExitCode))
+            {
+                return true;
+            }
+            else
+            {
+                _logger.LogError("Repository=\"{Repository}\" Msg=\"{Msg}\"", repository.Name, result.StandardError.EscapeLineEndings());
+                return false;
+            }
         }
     }
 }
