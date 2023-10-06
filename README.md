@@ -18,5 +18,7 @@ Accelerate simplifies the workflow of making changes across multiple repositorie
 5. Committing changes to each repository
 6. Creating a pull request for each repository
 
+After initializing a new campaign using the command `dotnet accelerate init --name demo`, change the directory to the campaign by using the command `cd demo`. Then, add the repositories that require changes to the `repos.json` file. After making the necessary changes, commit them and push them to your Git hosting platform. Accelerate reads the pull request title and description from the campaign's `README.md`. Please ensure that you update the `README.md` before running the `dotnet accelerate create-prs` command.
+
 > [!NOTE]
 > To use Accelerate with Azure DevOps, you need to provide an access token that has the necessary permissions to create pull requests. Assign the generated access token to the environment variable `AZUREDEVOPSSETTINGS__AUTHTOKEN`. In the future, we will rely on the Azure CLI, and this token will no longer be necessary.
