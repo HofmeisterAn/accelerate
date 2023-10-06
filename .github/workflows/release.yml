@@ -21,4 +21,4 @@ jobs:
       - name: Pack
         run: dotnet pack --configuration $CONFIGURATION --output . /p:Version=$GITHUB_REF_NAME
       - name: Pack
-        run: dotnet nuget push *.nupkg --source $NUGET_FEED_SOURCE --api-key $NUGET_FEED_API_KEY
+        run: dotnet nuget push *.nupkg --source ${{ vars.NUGET_FEED_SOURCE }} --api-key $NUGET_FEED_API_KEY
