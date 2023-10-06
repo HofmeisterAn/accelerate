@@ -74,7 +74,7 @@ public sealed class AzureDevOps : Repository
                 .WithValidation(CommandResultValidation.None)
                 .ExecuteBufferedAsync(ct);
 
-            _ = LogAndValidate(campaign, repository, commandResult);
+            _ = LogAndValidate(campaign, repository, commandResult, 0);
 
             const string api = "https://dev.azure.com/{0}/{1}/_apis/git/repositories/{2}/pullrequests?api-version=7.0";
             var requestUri = new Uri(string.Format(api, repository.Organization, repository.Project, repository.Name));
