@@ -124,7 +124,7 @@ public sealed class AzureDevOps : Repository
         {
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug("Repository=\"{Repository}\" Msg=\"{Msg}\"", repository.Name, result.StandardOutput.EscapeLineEndings());
+                _logger.LogDebug("Repository=\"{Repository}\"{NewLine}{Stdout}", repository.Name, Environment.NewLine, result.StandardOutput);
             }
 
             if (successExitCodes.Contains(result.ExitCode))
@@ -133,7 +133,7 @@ public sealed class AzureDevOps : Repository
             }
             else
             {
-                _logger.LogError("Repository=\"{Repository}\" Msg=\"{Msg}\"", repository.Name, result.StandardError.EscapeLineEndings());
+                _logger.LogError("Repository=\"{Repository}\"{NewLine}{Stderr}", repository.Name, Environment.NewLine, result.StandardError);
                 return false;
             }
         }
