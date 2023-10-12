@@ -1,4 +1,4 @@
-﻿namespace Accelerate.Extensions;
+namespace Accelerate.Extensions;
 
 public static class StringExtension
 {

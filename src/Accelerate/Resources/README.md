@@ -39,3 +39,5 @@ Explain here how this PR will be tested by the reviewer: commands, dependencies,
 
 Add here any thought that you consider could be identified as an actionable step once this PR is merged.
 -->
+
+<sub>Created with [Accelerate](https://github.com/HofmeisterAn/accelerate).</sub>
