@@ -65,6 +65,12 @@ public sealed class AzureDevOps : Repository
 
         public async Task<bool> CreatePullRequestsAsync(Campaign campaign, AzureDevOps repository, string title, string description, CancellationToken ct = default)
         {
+            if (string.IsNullOrWhiteSpace(_azureDevOpsSettings.Value.AuthToken))
+            {
+                _logger.LogError("Repository=\"{Repository}\" Msg=\"{Msg}\"", repository.Name, "Azure DevOps auth token is missing.");
+                return false;
+            }
+
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
             var args = new[] { "symbolic-ref", "refs/remotes/origin/HEAD" };
 
