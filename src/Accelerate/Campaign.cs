@@ -6,6 +6,8 @@ public sealed class Campaign
 
     public const string ReposFileName = "repos.json";
 
+    public const string VisualStudioCodeWorkspaceFileName = "campaign.code-workspace";
+
     private readonly IGitCommand<AzureDevOps> _gitCommand;
 
     private readonly IShellCommand<AzureDevOps> _shellCommand;
@@ -89,6 +91,9 @@ public sealed class Campaign
         {
             throw new AccelerateException(AccelerateErrorCode.GitCommandExecutionFailed);
         }
+
+        var visualStudioCodeWorkspaceJson = JsonSerializer.Serialize(new VisualStudioCodeWorkspace(this, _repositories));
+        await File.WriteAllTextAsync(VisualStudioCodeWorkspaceFileName, visualStudioCodeWorkspaceJson, ct);
     }
 
     public async Task CommitAsync(string message, CancellationToken ct = default)
@@ -191,5 +196,31 @@ public sealed class Campaign
         {
             throw new AccelerateException(AccelerateErrorCode.GitCommandExecutionFailed);
         }
+    }
+
+    private sealed class VisualStudioCodeWorkspace
+    {
+        public VisualStudioCodeWorkspace(Campaign campaign, IEnumerable<Repository> repositories)
+        {
+            Folders = repositories.Select(repository => new VisualStudioCodeFolder(repository.Url.Segments.Last(), Path.GetFullPath(Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath)))).ToImmutableList();
+        }
+
+        [JsonPropertyName("folders")]
+        public IReadOnlyList<VisualStudioCodeFolder> Folders { get; }
+    }
+
+    private sealed class VisualStudioCodeFolder
+    {
+        public VisualStudioCodeFolder(string name, string path)
+        {
+            Name = name;
+            Path = path;
+        }
+
+        [JsonPropertyName("name")]
+        public string Name { get; }
+
+        [JsonPropertyName("path")]
+        public string Path { get; }
     }
 }

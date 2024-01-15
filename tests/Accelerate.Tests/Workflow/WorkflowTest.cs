@@ -54,6 +54,7 @@ public sealed class WorkflowTest : IGitCommand<AzureDevOps>, IShellCommand<Azure
         // Then
         Assert.True(File.Exists(Campaign.ReadmeFileName));
         Assert.True(File.Exists(Campaign.ReposFileName));
+        Assert.True(File.Exists(Campaign.VisualStudioCodeWorkspaceFileName));
         Assert.Equivalent(typeof(IGitCommand<Repository>).GetMethods().Select(methodInfo => methodInfo.Name), _actualCmds);
         Assert.Equivalent(typeof(IShellCommand<Repository>).GetMethods().Select(methodInfo => methodInfo.Name), _actualCmds);
     }
