@@ -7,7 +7,7 @@
         <ToolCommandName>dotnet-accelerate</ToolCommandName>
     </PropertyGroup>
     <PropertyGroup>
-        <Copyright>Copyright (c) 2023 Andre Hofmeister and other authors</Copyright>
+        <Copyright>Copyright (c) 2024 Andre Hofmeister and other authors</Copyright>
         <Authors>Andre Hofmeister and contributors</Authors>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <RepositoryType>git</RepositoryType>

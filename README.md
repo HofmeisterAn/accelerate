@@ -31,4 +31,4 @@ After initializing a new campaign using the command `dotnet accelerate init --na
 
 ## Copyright
 
-Copyright (c) 2023 Andre Hofmeister and other authors.
+Copyright (c) 2024 Andre Hofmeister and other authors.
