@@ -1,12 +1,8 @@
 # The PR title
 
-<!-- Type of change
-Please label this PR with one of the existing labels, depending on the scope of your change.
--->
-
 ## What does this PR do?
 
-<!-- Mandatory[repos.json](..%2Fbin%2FDebug%2Fnet6.0%2Fffff%2Frepos.json)
+<!-- Mandatory
 Explain here the changes you made on the PR. Please explain the WHAT: patterns used, algorithms implemented, design architecture, etc.
 -->
 
