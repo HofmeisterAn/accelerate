@@ -4,6 +4,9 @@
 
 Accelerate is a project inspired by [Skyscanner/turbolift](https://github.com/Skyscanner/turbolift), a great tool for managing changes across multiple GitHub repositories simultaneously. My shoutout and kudos to them for their incredible idea and work 💙. While Turbolift focuses on GitHub, Accelerate takes a similar concept but extends it to work with Azure DevOps repositories, with support for Windows, Linux, and macOS. Accelerate is designed to be flexible and open for future integration with other Git hosting platforms, ensuring it is not solely a tool for Azure DevOps.
 
+> [!IMPORTANT]
+> Before creating the pull request, make sure to push the branch (`dotnet accelerate push`). Unfortunately, this step is missing in the following demo.
+
 ![An animated GIF demonstrating the Accelerate Command Line Interface (CLI) tool.](docs/demo.gif)
 
 > [!NOTE]
