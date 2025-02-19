@@ -35,7 +35,13 @@ public sealed class AzureDevOps : Repository
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
             var args = new[] { "clone", repository.Url.ToString(), "." };
             _ = Directory.CreateDirectory(workDir);
-            var commandResult = await Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).WithValidation(CommandResultValidation.None).ExecuteBufferedAsync(ct);
+
+            var commandResult = await Cli.Wrap(GitCli)
+                .WithWorkingDirectory(workDir)
+                .WithArguments(args)
+                .WithValidation(CommandResultValidation.None)
+                .ExecuteBufferedAsync(ct);
+
             return LogAndValidate(campaign, repository, commandResult, 0, 128);
         }
 
@@ -43,7 +49,13 @@ public sealed class AzureDevOps : Repository
         {
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
             var args = new[] { "checkout", "-b", campaign.Name, "--track" };
-            var commandResult = await Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).WithValidation(CommandResultValidation.None).ExecuteBufferedAsync(ct);
+
+            var commandResult = await Cli.Wrap(GitCli)
+                .WithWorkingDirectory(workDir)
+                .WithArguments(args)
+                .WithValidation(CommandResultValidation.None)
+                .ExecuteBufferedAsync(ct);
+
             return LogAndValidate(campaign, repository, commandResult, 0);
         }
 
@@ -51,7 +63,13 @@ public sealed class AzureDevOps : Repository
         {
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
             var args = new[] { "commit", "--all", "--message", message };
-            var commandResult = await Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).WithValidation(CommandResultValidation.None).ExecuteBufferedAsync(ct);
+
+            var commandResult = await Cli.Wrap(GitCli)
+                .WithWorkingDirectory(workDir)
+                .WithArguments(args)
+                .WithValidation(CommandResultValidation.None)
+                .ExecuteBufferedAsync(ct);
+
             return LogAndValidate(campaign, repository, commandResult, 0);
         }
 
@@ -59,7 +77,13 @@ public sealed class AzureDevOps : Repository
         {
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
             var args = new[] { "push", "--set-upstream", "origin", campaign.Name };
-            var commandResult = await Cli.Wrap(GitCli).WithWorkingDirectory(workDir).WithArguments(args).WithValidation(CommandResultValidation.None).ExecuteBufferedAsync(ct);
+
+            var commandResult = await Cli.Wrap(GitCli)
+                .WithWorkingDirectory(workDir)
+                .WithArguments(args)
+                .WithValidation(CommandResultValidation.None)
+                .ExecuteBufferedAsync(ct);
+
             return LogAndValidate(campaign, repository, commandResult, 0);
         }
 
@@ -97,7 +121,7 @@ public sealed class AzureDevOps : Repository
 
             var parameter = Convert.ToBase64String(Encoding.Default.GetBytes(":" + _azureDevOpsSettings.Value.AuthToken));
 
-            var jsonString = JsonSerializer.Serialize(prRequestBody);
+            var jsonString = JsonSerializer.Serialize(prRequestBody, SourceGenerationContext.Default.DictionaryStringString);
 
             using var httpClient = new HttpClient();
 
@@ -122,11 +146,17 @@ public sealed class AzureDevOps : Repository
         {
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
             var args = new[] { "-c", string.Join(' ', command) };
-            var commandResult = await Cli.Wrap(_shellSettings.Value.Shell).WithWorkingDirectory(workDir).WithArguments(args).WithValidation(CommandResultValidation.None).ExecuteBufferedAsync(ct);
+
+            var commandResult = await Cli.Wrap(_shellSettings.Value.Shell)
+                .WithWorkingDirectory(workDir)
+                .WithArguments(args)
+                .WithValidation(CommandResultValidation.None)
+                .ExecuteBufferedAsync(ct);
+
             return LogAndValidate(campaign, repository, commandResult, 0);
         }
 
-        private bool LogAndValidate(Campaign campaign, AzureDevOps repository, BufferedCommandResult result, params int[] successExitCodes)
+        private bool LogAndValidate(Campaign _, AzureDevOps repository, BufferedCommandResult result, params int[] successExitCodes)
         {
             if (_logger.IsEnabled(LogLevel.Debug))
             {

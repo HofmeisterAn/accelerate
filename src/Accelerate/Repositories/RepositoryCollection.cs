@@ -45,10 +45,10 @@ public sealed class RepositoryCollection : List<Repository>
                 switch (typeName)
                 {
                     case "Accelerate.Repositories.AzureDevOps":
-                        repository = repoProperty.Deserialize<AzureDevOps>();
+                        repository = repoProperty.Deserialize<AzureDevOps>(SourceGenerationContext.Default.AzureDevOps);
                         break;
                     case "Accelerate.Repositories.GitHub":
-                        repository = repoProperty.Deserialize<GitHub>();
+                        repository = repoProperty.Deserialize<GitHub>(SourceGenerationContext.Default.GitHub);
                         break;
                     default:
                         throw new AccelerateException(AccelerateErrorCode.Undefined);

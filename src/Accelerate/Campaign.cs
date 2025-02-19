@@ -92,7 +92,8 @@ public sealed class Campaign
             throw new AccelerateException(AccelerateErrorCode.GitCommandExecutionFailed);
         }
 
-        var visualStudioCodeWorkspaceJson = JsonSerializer.Serialize(new VisualStudioCodeWorkspace(this, _repositories));
+        var visualStudioCodeWorkspace = new VisualStudioCodeWorkspace(this, _repositories);
+        var visualStudioCodeWorkspaceJson = JsonSerializer.Serialize(visualStudioCodeWorkspace, SourceGenerationContext.Default.VisualStudioCodeWorkspace);
         await File.WriteAllTextAsync(VisualStudioCodeWorkspaceFileName, visualStudioCodeWorkspaceJson, ct);
     }
 
@@ -198,7 +199,7 @@ public sealed class Campaign
         }
     }
 
-    private sealed class VisualStudioCodeWorkspace
+    public sealed class VisualStudioCodeWorkspace
     {
         public VisualStudioCodeWorkspace(Campaign campaign, IEnumerable<Repository> repositories)
         {
@@ -209,7 +210,7 @@ public sealed class Campaign
         public IReadOnlyList<VisualStudioCodeFolder> Folders { get; }
     }
 
-    private sealed class VisualStudioCodeFolder
+    public sealed class VisualStudioCodeFolder
     {
         public VisualStudioCodeFolder(string name, string path)
         {

@@ -3,7 +3,6 @@ namespace Accelerate.Tests;
 public sealed class RepositoryCollectionTest
 {
     [Theory]
-    [InlineData(null)]
     [InlineData("")]
     [InlineData("{}")]
     public void Constructor_WithInvalidJson_ThrowsAccelerateException(string jsonString)

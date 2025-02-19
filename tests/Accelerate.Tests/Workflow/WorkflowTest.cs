@@ -2,7 +2,7 @@ namespace Accelerate.Tests.Workflow;
 
 public sealed class WorkflowTest : IGitCommand<AzureDevOps>, IShellCommand<AzureDevOps>, IDisposable
 {
-    private readonly IList<string> _actualCmds = new List<string>();
+    private readonly List<string> _actualCmds = new List<string>();
 
     private readonly CampaignId _campaignId = new CampaignId();
 
@@ -10,9 +10,9 @@ public sealed class WorkflowTest : IGitCommand<AzureDevOps>, IShellCommand<Azure
     public void Should_Configure_Workflow_Successfully()
     {
         // Given
-        var inMemorySettings = new Dictionary<string, string>();
-        inMemorySettings.Add(string.Join(':', nameof(AzureDevOpsSettings), nameof(AzureDevOpsSettings.AuthToken)), _campaignId.Id);
-        inMemorySettings.Add(string.Join(':', nameof(ShellSettings), nameof(ShellSettings.Shell)), _campaignId.Id);
+        var inMemorySettings = new List<KeyValuePair<string, string?>>();
+        inMemorySettings.Add(new KeyValuePair<string, string?>(string.Join(':', nameof(AzureDevOpsSettings), nameof(AzureDevOpsSettings.AuthToken)), _campaignId.Id));
+        inMemorySettings.Add(new KeyValuePair<string, string?>(string.Join(':', nameof(ShellSettings), nameof(ShellSettings.Shell)), _campaignId.Id));
 
         // When
         var cmd = new Cmd.Init(_campaignId, this, this)
@@ -45,10 +45,10 @@ public sealed class WorkflowTest : IGitCommand<AzureDevOps>, IShellCommand<Azure
             using var cmd = cmds[step];
 
             await cmd.InitializeAsync()
-                .ConfigureAwait(false);
+                .ConfigureAwait(true);
 
             await cmd.DisposeAsync()
-                .ConfigureAwait(false);
+                .ConfigureAwait(true);
         }
 
         // Then

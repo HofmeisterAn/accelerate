@@ -39,7 +39,7 @@ jobs:
         run: |
           git config --global user.email "9199345+HofmeisterAn@users.noreply.github.com"
           git config --global user.name "Andre Hofmeister"
-          echo "${{ github.WORKSPACE }}/src/Accelerate/bin/${{ env.CONFIGURATION }}/net6.0/" >> $GITHUB_PATH
+          echo "${{ github.WORKSPACE }}/src/Accelerate/bin/${{ env.CONFIGURATION }}/net8.0/" >> $GITHUB_PATH
       - name: Test Workflow
         run: |
           workflow_git_dir="HofmeisterAn/GitHub/_git/testcontainers-dotnet-docker-compose/"

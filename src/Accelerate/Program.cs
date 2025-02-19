@@ -8,7 +8,7 @@ public class AccelerateHostBuilder : HostBuilder
     {
         ConfigureAppConfiguration((_, configurationBuilder) =>
         {
-            configurationBuilder.SetBasePath(Path.GetDirectoryName(GetType().Assembly.Location));
+            configurationBuilder.SetBasePath(AppContext.BaseDirectory);
         })
         .ConfigureServices((hostBuilder, serviceCollection) =>
         {
