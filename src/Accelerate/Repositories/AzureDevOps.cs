@@ -33,7 +33,8 @@ public sealed class AzureDevOps : Repository
         {
             _logger.LogInformation("Repository=\"{Repository}\"", repository.Url.AbsoluteUri);
             var workDir = Path.Combine(campaign.WorkingDirectoryPath, repository.WorkingDirectoryPath);
-            var args = new[] { "clone", repository.Url.ToString(), "." };
+            // Use AbsoluteUri. ToString() unescapes %20 to a space, which Git rejects.
+            var args = new[] { "clone", repository.Url.AbsoluteUri, "." };
             _ = Directory.CreateDirectory(workDir);
 
             var commandResult = await Cli.Wrap(GitCli)
