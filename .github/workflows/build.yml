@@ -29,6 +29,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup .NET
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
       - name: Restore NuGet
         run: dotnet restore
       - name: Build Solution
@@ -39,7 +41,7 @@ jobs:
         run: |
           git config --global user.email "9199345+HofmeisterAn@users.noreply.github.com"
           git config --global user.name "Andre Hofmeister"
-          echo "${{ github.WORKSPACE }}/src/Accelerate/bin/${{ env.CONFIGURATION }}/net8.0/" >> $GITHUB_PATH
+          echo "${{ github.WORKSPACE }}/src/Accelerate/bin/${{ env.CONFIGURATION }}/net10.0/" >> $GITHUB_PATH
       - name: Test Workflow
         run: |
           workflow_git_dir="HofmeisterAn/GitHub/_git/testcontainers-dotnet-docker-compose/"
